@@ -43,7 +43,7 @@ Before running the script, ensure that the following tools are installed on your
 To run the script unattended or in the background, you can use `nohup` or `&`:
 
 ```bash
-nohup ./convert_postgres_to_sqlite3.sh <arguments> &
+nohup ./convert_postgres_to_sqlite3.sh <arguments> &> /dev/null &
 
 ## License
 
