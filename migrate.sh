@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Check if the minimum required arguments are provided
-if [ "$#" -lt 3 ]; then
-    echo "Usage: $0 <sqlite_database_file> [postgres_connection_string] <postgres_dump_file> <sqlite_schema_file>"
+if [ "$#" -lt 1 ]; then
+    echo "Usage: $0 <sqlite_database_file> [postgres_connection_string] [sqlite_schema_file]"
     exit 1
 fi
 
@@ -10,16 +10,9 @@ START_TIME=$(date +%s)
 
 # Assign the provided arguments to variables
 SQLITE_DATABASE_FILE="$1"
-POSTGRES_CONN_STRING="$2"
-POSTGRES_DUMP_FILE="$3"
-SQLITE_SCHEMA_FILE="${@: -1}"  # Assumes the last argument is the schema file
-
-# If only three arguments are provided, assume the second argument is the dump file and the third is the schema file
-if [ "$#" -eq 3 ]; then
-    POSTGRES_DUMP_FILE="$2"
-    SQLITE_SCHEMA_FILE="$3"
-    POSTGRES_CONN_STRING=""
-fi
+POSTGRES_CONN_STRING="${2:-}"
+POSTGRES_DUMP_FILE="$(basename "$SQLITE_DATABASE_FILE" .sqlite).dump"  # Derive from the database name
+SQLITE_SCHEMA_FILE="${3:-./schema.sql}"  # Default to ./schema.sql if not provided
 
 # Check for pg_dump, sed, sqlite3
 for cmd in pg_dump sed sqlite3; do
@@ -30,7 +23,7 @@ for cmd in pg_dump sed sqlite3; do
 done
 
 # Define an array of tables to exclude
-EXCLUDE_TABLES=("_drizzle_migrations" "another_table_to_exclude" "yet_another_table")
+EXCLUDE_TABLES=("_drizzle_migrations")
 
 # Build the exclude-table options
 EXCLUDE_TABLES_OPTIONS=""
@@ -61,8 +54,9 @@ else
     pg_dump --data-only --inserts $EXCLUDE_TABLES_OPTIONS "$POSTGRES_CONN_STRING" > "$POSTGRES_DUMP_FILE"
 fi
 
-# Create a temporary SQL file
+# Create a temporary SQL file and ensure it gets deleted on script exit
 TEMP_SQL_FILE="$(mktemp)"
+trap 'rm -f "$TEMP_SQL_FILE"' EXIT
 
 # Convert the PostgreSQL dump file to SQL statements compatible with SQLite3
 echo "Converting PostgreSQL dump file to SQLite3 compatible SQL..."
@@ -81,11 +75,9 @@ sed \
 echo "Conversion to SQLite3 compatible SQL completed."
 
 # Wrap the SQL statements with BEGIN and END transactions
-echo "Wrapping the SQL statements with transactions..."
-echo "BEGIN TRANSACTION;" > "$TEMP_SQL_FILE".tmp
-cat "$TEMP_SQL_FILE" >> "$TEMP_SQL_FILE".tmp
-echo "COMMIT;" >> "$TEMP_SQL_FILE".tmp
-mv "$TEMP_SQL_FILE".tmp "$TEMP_SQL_FILE"
+echo "BEGIN TRANSACTION;" > "$TEMP_SQL_FILE"
+cat "$POSTGRES_DUMP_FILE" >> "$TEMP_SQL_FILE"
+echo "COMMIT;" >> "$TEMP_SQL_FILE"
 
 # Create the SQLite3 database if it doesn't exist or recreate it if the user agrees
 if [ -f "$SQLITE_DATABASE_FILE" ]; then
@@ -112,9 +104,6 @@ else
     touch "$SQLITE_DATABASE_FILE"
 fi
 
-# Assuming you have a 'sqlite_schema.sql' file with the SQLite-compatible schema
-SQLITE_SCHEMA_FILE="/Users/fharris/Projects/jobasaurus-crawler/drizzle/0000_military_korvac.sql"
-
 # Check if the SQLite schema file exists
 if [ ! -f "$SQLITE_SCHEMA_FILE" ]; then
     echo "SQLite schema file '$SQLITE_SCHEMA_FILE' not found."
@@ -136,9 +125,6 @@ sqlite3 "$SQLITE_DATABASE_FILE" < "$TEMP_SQL_FILE"
 # Re-enable foreign key checks after the import
 echo "Re-enabling foreign key checks..."
 sqlite3 "$SQLITE_DATABASE_FILE" "PRAGMA foreign_keys=ON;"
-
-# Clean up the temporary SQL file
-rm "$TEMP_SQL_FILE"
 
 END_TIME=$(date +%s)
 DURATION=$((END_TIME - START_TIME))
