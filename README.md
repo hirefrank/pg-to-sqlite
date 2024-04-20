@@ -1,6 +1,6 @@
 # PostgreSQL to SQLite3 Data Conversion
 
-This Bash script allows you to convert data from a PostgreSQL database into a SQLite3 database file. It creates a PostgreSQL dump file (if it doesn't already exist), converts the dump file into SQLite3-compatible SQL statements, and imports the data into a new or existing SQLite3 database file.
+This Bash script allows you to migrate data from a PostgreSQL database into a SQLite3 database file. It creates a PostgreSQL dump file (if it doesn't already exist), converts the dump file into SQLite3-compatible SQL statements, and imports the data into a new or existing SQLite3 database file.
 
 ## Prerequisites
 
@@ -11,10 +11,11 @@ Before running the script, ensure that the following tools are installed on your
 - `sqlite3` (SQLite3 command-line tool)
 
 ## Usage
-`./migrate.sh <sqlite_database_file> [postgres_connection_string] <postgres_dump_file>`
+`./convert_postgres_to_sqlite3.sh <sqlite_database_file> [postgres_connection_string] <postgres_dump_file> <sqlite_schema_file>`
 - `<sqlite_database_file>`: The path to the SQLite3 database file to create or update.
 - `[postgres_connection_string]` (optional): The connection string for the PostgreSQL database. If not provided, the script will only create the PostgreSQL dump file.
 - `<postgres_dump_file>`: The path to the PostgreSQL dump file to create or use.
+- `<sqlite_schema_file>`: The path to the SQLite3 schema file.
 
 ## Script Behavior
 
@@ -23,7 +24,7 @@ Before running the script, ensure that the following tools are installed on your
 3. If the SQLite3 database file already exists, the script will prompt you to recreate it or use the existing one.
 4. The script converts the PostgreSQL dump file into SQLite3-compatible SQL statements using `sed`.
 5. It wraps the SQL statements with `BEGIN TRANSACTION` and `COMMIT` statements.
-6. It creates the schema in the SQLite3 database using the provided `sqlite_schema.sql` file.
+6. It creates the schema in the SQLite3 database using the provided SQLite3 schema file.
 7. It disables foreign key checks temporarily for the import process.
 8. It imports the converted SQL statements into the SQLite3 database.
 9. It re-enables foreign key checks after the import is complete.
