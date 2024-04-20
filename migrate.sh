@@ -2,17 +2,28 @@
 
 # Check if the minimum required arguments are provided
 if [ "$#" -lt 1 ]; then
-    echo "Usage: $0 <sqlite_database_file> [postgres_connection_string] [sqlite_schema_file]"
+    echo "Usage: $0 <sqlite_database_file> [postgres_connection_string] [sqlite_schema_file] [--reset]" >&2
     exit 1
 fi
 
 START_TIME=$(date +%s)
+LOG_FILE="convert_postgres_to_sqlite3.log"
+
+# Define an array of tables to exclude
+EXCLUDE_TABLES=("_drizzle_migrations")
 
 # Assign the provided arguments to variables
 SQLITE_DATABASE_FILE="$1"
 POSTGRES_CONN_STRING="${2:-}"
-POSTGRES_DUMP_FILE="$(basename "$SQLITE_DATABASE_FILE" .sqlite).dump"  # Derive from the database name
-SQLITE_SCHEMA_FILE="${3:-./schema.sql}"  # Default to ./schema.sql if not provided
+POSTGRES_DUMP_FILE="$(basename "$SQLITE_DATABASE_FILE" .sqlite).dump"
+SQLITE_SCHEMA_FILE="${3:-./schema.sql}"
+RESET_FLAG="${4:-}"
+
+if [ "$RESET_FLAG" == "--reset" ]; then
+    echo "Resetting environment (cleaning up existing files and recreating SQLite3 database)..." >> "$LOG_FILE"
+    rm -f "$POSTGRES_DUMP_FILE" "$SQLITE_DATABASE_FILE" >> "$LOG_FILE" 2>&1
+    touch "$SQLITE_DATABASE_FILE" >> "$LOG_FILE" 2>&1
+fi
 
 # Check for pg_dump, sed, sqlite3
 for cmd in pg_dump sed sqlite3; do
@@ -31,27 +42,24 @@ for TABLE in "${EXCLUDE_TABLES[@]}"; do
     EXCLUDE_TABLES_OPTIONS+="--exclude-table=$TABLE "
 done
 
+# Create or recreate the SQLite3 database file
+if [ -f "$SQLITE_DATABASE_FILE" ]; then
+    echo "Recreating SQLite3 database: $SQLITE_DATABASE_FILE" >> "$LOG_FILE"
+    rm "$SQLITE_DATABASE_FILE" >> "$LOG_FILE" 2>&1
+fi
+echo "Creating SQLite3 database: $SQLITE_DATABASE_FILE" >> "$LOG_FILE"
+touch "$SQLITE_DATABASE_FILE" >> "$LOG_FILE" 2>&1
+
 # Check if the PostgreSQL dump file exists
 if [ -f "$POSTGRES_DUMP_FILE" ]; then
-    while true; do
-        read -p "PostgreSQL dump file '$POSTGRES_DUMP_FILE' already exists. Do you want to use it or create a new one? [u/C] " uc
-        case $uc in
-            [Uu]* ) 
-                echo "Using existing PostgreSQL dump file: $POSTGRES_DUMP_FILE"
-                break
-                ;;
-            [Cc]* ) 
-                echo "Creating a new PostgreSQL dump file: $POSTGRES_DUMP_FILE"
-                pg_dump --data-only --inserts $EXCLUDE_TABLES_OPTIONS "$POSTGRES_CONN_STRING" > "$POSTGRES_DUMP_FILE"                break
-                ;;
-            * ) 
-                echo "Please answer use (u) or create (c)."
-                ;;
-        esac
-    done
+    echo "Using existing PostgreSQL dump file: $POSTGRES_DUMP_FILE" >> "$LOG_FILE"
 else
-    echo "PostgreSQL dump file '$POSTGRES_DUMP_FILE' not found, creating a new one."
-    pg_dump --data-only --inserts $EXCLUDE_TABLES_OPTIONS "$POSTGRES_CONN_STRING" > "$POSTGRES_DUMP_FILE"
+    if [ -n "$POSTGRES_CONN_STRING" ]; then
+        echo "PostgreSQL dump file '$POSTGRES_DUMP_FILE' not found, creating a new one." >> "$LOG_FILE"
+        pg_dump --data-only --inserts $EXCLUDE_TABLES_OPTIONS "$POSTGRES_CONN_STRING" > "$POSTGRES_DUMP_FILE" 2>> "$LOG_FILE"
+    else
+        echo "Skipping PostgreSQL dump file creation (no connection string provided)." >> "$LOG_FILE"
+    fi
 fi
 
 # Create a temporary SQL file and ensure it gets deleted on script exit
@@ -79,30 +87,13 @@ echo "BEGIN TRANSACTION;" > "$TEMP_SQL_FILE"
 cat "$POSTGRES_DUMP_FILE" >> "$TEMP_SQL_FILE"
 echo "COMMIT;" >> "$TEMP_SQL_FILE"
 
-# Create the SQLite3 database if it doesn't exist or recreate it if the user agrees
+# Create or recreate the SQLite3 database file
 if [ -f "$SQLITE_DATABASE_FILE" ]; then
-    while true; do
-        read -p "The SQLite database '$SQLITE_DATABASE_FILE' already exists. Do you want to recreate it? [y/N] " yn
-        case $yn in
-            [Yy]* ) 
-                echo "Recreating SQLite3 database: $SQLITE_DATABASE_FILE"
-                rm "$SQLITE_DATABASE_FILE"
-                touch "$SQLITE_DATABASE_FILE"
-                break
-                ;;
-            [Nn]* ) 
-                echo "Using existing database."
-                break
-                ;;
-            * ) 
-                echo "Please answer yes or no."
-                ;;
-        esac
-    done
-else
-    echo "Creating SQLite3 database: $SQLITE_DATABASE_FILE"
-    touch "$SQLITE_DATABASE_FILE"
+    echo "Recreating SQLite3 database: $SQLITE_DATABASE_FILE" >> "$LOG_FILE"
+    rm "$SQLITE_DATABASE_FILE" >> "$LOG_FILE" 2>&1
 fi
+echo "Creating SQLite3 database: $SQLITE_DATABASE_FILE" >> "$LOG_FILE"
+touch "$SQLITE_DATABASE_FILE" >> "$LOG_FILE" 2>&1
 
 # Check if the SQLite schema file exists
 if [ ! -f "$SQLITE_SCHEMA_FILE" ]; then
