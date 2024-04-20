@@ -8,6 +8,7 @@ fi
 
 START_TIME=$(date +%s)
 LOG_FILE="convert_postgres_to_sqlite3.log"
+echo "Starting migration process..." > "$LOG_FILE" # This line will create a new log file or overwrite an existing one
 
 # Define an array of tables to exclude
 EXCLUDE_TABLES=("_drizzle_migrations")
