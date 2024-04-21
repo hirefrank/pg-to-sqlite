@@ -32,18 +32,18 @@ Before running the script, ensure that the following tools are installed on your
 
 ## Notes
 
-- The script excludes the `_drizzle_migrations` table from the PostgreSQL dump. You can modify the `EXCLUDE_TABLES` array in the script to include or exclude different tables.
+- The script excludes the `__drizzle_migrations` table from the PostgreSQL dump. You can modify the `EXCLUDE_TABLES` array in the script to include or exclude different tables.
 - If the PostgreSQL connection string is not provided, the script will skip creating the PostgreSQL dump file.
 - If the `--reset` flag is provided, the script will remove any existing PostgreSQL dump file and SQLite3 database file before starting, and then create a new SQLite3 database file.
 - The script displays the total execution time at the end.
-- All output and error messages are logged to the `convert_postgres_to_sqlite3.log` file.
+- All output and error messages are logged to the `migrate_postgres_to_sqlite3.log` file.
 
 ## Unattended Execution
 
 To run the script unattended or in the background, you can use `nohup` or `&`:
 
 ```bash
-nohup ./convert_postgres_to_sqlite3.sh <arguments> &> /dev/null &
+nohup ./migrate.sh <arguments> &> /dev/null &
 ```
 
 ## License
