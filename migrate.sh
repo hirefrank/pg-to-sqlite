@@ -83,10 +83,13 @@ sed \
 
 echo "Conversion to SQLite3 compatible SQL completed."
 
-# Wrap the SQL statements with BEGIN and END transactions
-echo "BEGIN TRANSACTION;" > "$TEMP_SQL_FILE"
-cat "$POSTGRES_DUMP_FILE" >> "$TEMP_SQL_FILE"
-echo "COMMIT;" >> "$TEMP_SQL_FILE"
+# Wrap the SQL statements with BEGIN and COMMIT transactions
+echo "BEGIN TRANSACTION;" > "$TEMP_SQL_FILE.converted"
+cat "$TEMP_SQL_FILE" >> "$TEMP_SQL_FILE.converted"
+echo "COMMIT;" >> "$TEMP_SQL_FILE.converted"
+
+# Now move the fully prepared SQL file into place
+mv "$TEMP_SQL_FILE.converted" "$TEMP_SQL_FILE"
 
 # Create or recreate the SQLite3 database file
 if [ -f "$SQLITE_DATABASE_FILE" ]; then
