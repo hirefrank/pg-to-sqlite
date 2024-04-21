@@ -35,7 +35,7 @@ for cmd in pg_dump sed sqlite3; do
 done
 
 # Define an array of tables to exclude
-EXCLUDE_TABLES=("_drizzle_migrations")
+EXCLUDE_TABLES=("__drizzle_migrations")
 
 # Build the exclude-table options
 EXCLUDE_TABLES_OPTIONS=""
