@@ -2,23 +2,23 @@
 
 # Check if the minimum required arguments are provided
 if [ "$#" -lt 1 ]; then
-    echo "Usage: $0 <sqlite_database_file> [postgres_connection_string] [sqlite_schema_file] [--reset]" >&2
+    echo "Usage: $0 <sqlite_database_file> [postgres_connection_string] [--reset]" >&2
     exit 1
 fi
 
 START_TIME=$(date +%s)
 LOG_FILE="migrate_postgres_to_sqlite3.log"
+SQLITE_SCHEMA_FILE="./schema.sql"
 echo "Starting migration process..." > "$LOG_FILE" # This line will create a new log file or overwrite an existing one
 
 # Define an array of tables to exclude
-EXCLUDE_TABLES=("_drizzle_migrations")
+EXCLUDE_TABLES=("__drizzle_migrations")
 
 # Assign the provided arguments to variables
 SQLITE_DATABASE_FILE="$1"
 POSTGRES_CONN_STRING="${2:-}"
 POSTGRES_DUMP_FILE="$(basename "$SQLITE_DATABASE_FILE" .sqlite).dump"
-SQLITE_SCHEMA_FILE="${3:-./schema.sql}"
-RESET_FLAG="${4:-}"
+RESET_FLAG="${3:-}"
 
 if [ "$RESET_FLAG" == "--reset" ]; then
     echo "Resetting environment (cleaning up existing files and recreating SQLite3 database)..." >> "$LOG_FILE"

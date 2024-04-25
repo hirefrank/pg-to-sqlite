@@ -11,11 +11,13 @@ Before running the script, ensure that the following tools are installed on your
 - `sqlite3` (SQLite3 command-line tool)
 
 ## Usage
-`./migrate.sh <sqlite_database_file> [postgres_connection_string] [sqlite_schema_file] [--reset]`
-- `<sqlite_database_file>`: The path to the SQLite3 database file to create or update.
-- `[postgres_connection_string]` (optional): The connection string for the PostgreSQL database. If not provided, the script will skip creating the PostgreSQL dump file.
-- `[sqlite_schema_file]` (optional): The path to the SQLite3 schema file. If not provided, the script will use `./schema.sql` by default.
-- `[--reset]` (optional): If this flag is provided, the script will remove any existing PostgreSQL dump file and SQLite3 database file, and then create a new SQLite3 database file.
+`./migrate.sh <sqlite_database_file> [postgres_connection_string] [--reset]`
+
+- `<sqlite_database_file>`: The path to the SQLite database file.
+- `[postgres_connection_string]`: Optional. The PostgreSQL connection string. If not provided, the script will look for an existing PostgreSQL dump file.
+- `[--reset]`: Optional. If provided, the script will reset the environment by cleaning up existing files and recreating the SQLite database.
+
+_Ensure that the `schema.sql` file, which defines the SQLite database schema, is present in the same directory as the `migrate.sh` script before running the migration._
 
 ## Script Behavior
 
@@ -24,7 +26,7 @@ Before running the script, ensure that the following tools are installed on your
 3. The script converts the PostgreSQL dump file into SQLite3-compatible SQL statements using `sed`.
 4. It wraps the SQL statements with `BEGIN TRANSACTION` and `COMMIT` statements.
 5. The script recreates the SQLite3 database file if it already exists, or creates a new one if it doesn't exist.
-6. It creates the schema in the SQLite3 database using the provided SQLite3 schema file (or `./schema.sql` if not provided).
+6. It creates the schema in the SQLite3 database using the provided SQLite3 schema file (`./schema.sql`).
 7. It disables foreign key checks temporarily for the import process.
 8. It imports the converted SQL statements into the SQLite3 database.
 9. It re-enables foreign key checks after the import is complete.
