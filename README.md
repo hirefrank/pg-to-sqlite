@@ -1,4 +1,4 @@
-# PostgreSQL to SQLite3 Data Conversion
+# PostgreSQL to SQLite3 DB Conversion
 
 This Bash script allows you to migrate data from a PostgreSQL database into a SQLite3 database file. It creates a PostgreSQL dump file (if it doesn't already exist and a PostgreSQL connection string is provided), converts the dump file into SQLite3-compatible SQL statements, and imports the data into a new or recreated SQLite3 database file.
 
