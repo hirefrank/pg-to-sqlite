@@ -12,7 +12,7 @@ SQLITE_SCHEMA_FILE="./schema.sql"
 echo "Starting migration process..." > "$LOG_FILE" # This line will create a new log file or overwrite an existing one
 
 # Define an array of tables to exclude
-EXCLUDE_TABLES=("__drizzle_migrations")
+EXCLUDE_TABLES=("__drizzle_migrations", "ar_internal_metadata", "schema_migrations")
 
 # Assign the provided arguments to variables
 SQLITE_DATABASE_FILE="$1"
@@ -52,12 +52,12 @@ echo "Creating SQLite3 database: $SQLITE_DATABASE_FILE" >> "$LOG_FILE"
 touch "$SQLITE_DATABASE_FILE" >> "$LOG_FILE" 2>&1
 
 # Check if the PostgreSQL dump file exists
-if [ -f "$POSTGRES_DUMP_FILE" ]; then
+if [ -f "$POSTGRES_DUMP_FILE" ]; then--attribute-inserts 
     echo "Using existing PostgreSQL dump file: $POSTGRES_DUMP_FILE" >> "$LOG_FILE"
 else
     if [ -n "$POSTGRES_CONN_STRING" ]; then
         echo "PostgreSQL dump file '$POSTGRES_DUMP_FILE' not found, creating a new one." >> "$LOG_FILE"
-        pg_dump --data-only --inserts $EXCLUDE_TABLES_OPTIONS "$POSTGRES_CONN_STRING" > "$POSTGRES_DUMP_FILE" 2>> "$LOG_FILE"
+        pg_dump --data-only --attribute-inserts $EXCLUDE_TABLES_OPTIONS "$POSTGRES_CONN_STRING" > "$POSTGRES_DUMP_FILE" 2>> "$LOG_FILE"
     else
         echo "Skipping PostgreSQL dump file creation (no connection string provided)." >> "$LOG_FILE"
     fi
