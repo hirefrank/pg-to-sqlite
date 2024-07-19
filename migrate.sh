@@ -53,8 +53,7 @@ touch "$SQLITE_DATABASE_FILE" >> "$LOG_FILE" 2>&1
 
 # Check if the PostgreSQL dump file exists
 if [ -f "$POSTGRES_DUMP_FILE" ]; then 
-    --attribute-inserts 
-    echo "Using existing PostgreSQL dump file: $POSTGRES_DUMP_FILE" >> "$LOG_FILE"
+    --attribute-inserts echo "Using existing PostgreSQL dump file: $POSTGRES_DUMP_FILE" >> "$LOG_FILE"
 else
     if [ -n "$POSTGRES_CONN_STRING" ]; then
         echo "PostgreSQL dump file '$POSTGRES_DUMP_FILE' not found, creating a new one." >> "$LOG_FILE"
