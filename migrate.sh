@@ -12,7 +12,7 @@ SQLITE_SCHEMA_FILE="./schema.sql"
 echo "Starting migration process..." > "$LOG_FILE" # This line will create a new log file or overwrite an existing one
 
 # Define an array of tables to exclude
-EXCLUDE_TABLES=("__drizzle_migrations", "ar_internal_metadata", "schema_migrations")
+EXCLUDE_TABLES=("__drizzle_migrations", "ar_internal_metadata", "schema_migrations", "pg_catalog")
 
 # Assign the provided arguments to variables
 SQLITE_DATABASE_FILE="$1"
