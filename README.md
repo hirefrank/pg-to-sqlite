@@ -11,6 +11,7 @@ Before running the script, ensure that the following tools are installed on your
 - `sqlite3` (SQLite3 command-line tool)
 
 ## Usage
+
 `./migrate.sh <sqlite_database_file> [postgres_connection_string] [--reset]`
 
 - `<sqlite_database_file>`: The path to the SQLite database file.
@@ -47,6 +48,19 @@ To run the script unattended or in the background, you can use `nohup` or `&`:
 ```bash
 nohup ./migrate.sh <arguments> &> /dev/null &
 ```
+
+# Exampales
+
+## Converting Heroku PostgreSQL to local SQLite
+
+If your planning to do a cloud exit from Heroku and require to test your app with with existing data on your local machine, do the following.
+
+1. Get your SQlite database schema from your local app's database: `sqlite3 development.sqlite3 '.schema' > schema.sql`
+2. Copy `schema.sql` into the same directory as `migrate.sh`
+3. Copy `development.sqlite3` = < sqlite_database_file > into the same directory as `migrate.sh`
+4. Login into your Heroku account, navigate to your App > Add-ons where it list your Heroku Postgres DB. Under Datastores > Setting, copy your PostgreSQL Connection URL, it will be use in the next step. URI starts with `postgresql://...` = [ postgresql_connection_string ] ![heroku_db](/images/heroku_db_admin.jpg)
+5. Run the script, example:`./migrate.sh development.sqlite3 postgres://...`  
+6. Wait until finished and once done your `development.sqlite3` will be populated with data from the postgresql db. You can copy the `.sqlite3` into your app and test it locally.
 
 ## License
 
