@@ -49,7 +49,7 @@ To run the script unattended or in the background, you can use `nohup` or `&`:
 nohup ./migrate.sh <arguments> &> /dev/null &
 ```
 
-# Exampales
+# Instructions for
 
 ## Converting Heroku PostgreSQL to local SQLite
 
