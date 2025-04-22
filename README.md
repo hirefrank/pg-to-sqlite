@@ -62,6 +62,10 @@ If your planning to do a cloud exit from Heroku and require to test your app wit
 5. Run the script; `./migrate.sh <sqlite_database_file> [postgres_connection_string]`. Example:`./migrate.sh development.sqlite3 postgres://...`  
 6. Wait until finished and once done your `development.sqlite3` will be populated with data from the postgresql db. You can copy the `development.sqlite3` into your app and test it locally.
 
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=hirefrank/pg-to-sqlite&type=Date)](https://www.star-history.com/#hirefrank/pg-to-sqlite&Date)
+
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
