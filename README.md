@@ -59,8 +59,16 @@ If your planning to do a cloud exit from Heroku and require to test your app wit
 2. Copy `schema.sql` into the same directory as `migrate.sh`
 3. Copy `development.sqlite3` = `<sqlite_database_file>` into the same directory as `migrate.sh`
 4. Login into your Heroku account, navigate to your App > Add-ons where it list your Heroku Postgres DB. Under Datastores > Setting, copy your PostgreSQL Connection URL, it will be use in the next step. URI starts with `postgresql://...` = `[postgresql_connection_string]`  ![heroku_db](/images/heroku_db_admin.jpg)
-5. Run the script; `./migrate.sh <sqlite_database_file> [postgres_connection_string]`. Example:`./migrate.sh development.sqlite3 postgres://...`  
+5. Run the script; `./migrate.sh <sqlite_database_file> [postgres_connection_string]`. Example:`./migrate.sh development.sqlite3 postgres://...`
 6. Wait until finished and once done your `development.sqlite3` will be populated with data from the postgresql db. You can copy the `development.sqlite3` into your app and test it locally.
+
+## Migrating from PostgreSQL to Cloudflare D1 (Redwood)
+
+For Redwood applications moving from PostgreSQL to the [Redwood SDK](https://github.com/redwoodjs/sdk) backed by Cloudflare D1,
+run `migrate.sh` with the `--d1` flag. Supply the database name via `--d1 <name>`
+or set the `D1_DATABASE_NAME` environment variable. The script dumps your PostgreSQL
+data, converts it to a D1-compatible format, runs Prisma migrations and then
+imports the data with `wrangler`.
 
 ## Star History
 
